@@ -1,6 +1,15 @@
 eciesBlockSize = 16; // fix later
 function eciesEncrypt(dataBytes, pubKeyBytes, optionalSecureRandom){
-  var r = new Bitcoin.ECKey(false);
+  var r;
+  if(optionalSecureRandom){
+    var limit = getSECCurveByName("secp256k1").getN();
+    rPriv = new BigInteger(limit.bitLength(), optionalSecureRandom)
+        .mod(limit.subtract(BigInteger.ONE))
+        .add(BigInteger.ONE);
+    r = new Bitcoin.ECKey(rPriv);
+  } else {
+    r = new Bitcoin.ECKey(false);
+  }
   var RpubBytes = r.getPub();
   var curve = getSECCurveByName("secp256k1").getCurve();
   var curveBytes = Crypto.util.hexToBytes("02ca");
