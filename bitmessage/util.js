@@ -1,4 +1,4 @@
-defaultPOWPerByte = 320;
+defaultPOWPerByte = 640;
 defaultPayloadExtra = 14000;
 defaultStream = 1;
 defaultVersion = 4;

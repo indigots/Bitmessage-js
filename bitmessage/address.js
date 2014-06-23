@@ -114,8 +114,8 @@ Bitmessage.address = (function (){
       this.fauxKeyHex = input.fauxKeyHex;
       this.name = input.name;
       this.type = input.type;
-      if(input.advertized){
-        this.advertized = new Date(input.advertized);
+      if(input.advertised){
+        this.advertised = new Date(input.advertised);
       }
       if(input.keyRequested){
         this.keyRequested = new Date(input.keyRequested);
@@ -310,6 +310,63 @@ Bitmessage.address = (function (){
     }
   };
 
+  address.prototype.toKeysDat = function(){
+    var exName = this.name;
+    if(this.type === 'chan'){
+      exName = '[chan] ' + this.name;
+    }
+    var toReturn = '[' + this.label + ']\n'
+      + 'label = ' + exName + '\n'
+      + 'enabled = true\n'
+      + 'decoy = false\n';
+    if(this.type === 'chan'){
+      toReturn += 'chan = true\n';
+    }
+    toReturn  += 'noncetrialsperbyte = ' + this.nonceTrials + '\n'
+      + 'payloadlengthextrabytes = ' + this.extraBytes + '\n'
+      + 'privsigningkey = ' + this.signKey.getExportedPrivateKey() + '\n'
+      + 'privencryptionkey = ' + this.encKey.getExportedPrivateKey();
+    if(this.type === 'private'){
+      toReturn += '\nlastpubkeysendtime = ' + Math.floor(this.advertised.getTime()/1000);
+    }
+    return toReturn;
+  }
+  address.prototype.fromKeysDat = function(keystr){
+    var lines = keystr.split('\n');
+    var toReturn;
+    lines.forEach(findLabel);
+    function findLabel(line)
+      if(line.charAt(0) === '[' && line.charAt(line.length - 1) === ']'){
+        var label = line.substr(1, line.length - 2);
+        toReturn = new Bitmessage.address(label);
+      }
+    }
+    if(!toReturn){
+      //Missing label!
+      return;
+    }
+    lines.forEach(processLine);
+    function processLine(line){
+      //console.log('line is: ' + line + ' length: ' + line.length);
+      if(line.substr(0,8) === 'label = '){
+        toReturn.name = line.substr(8);
+      } else if(line === 'chan = true'){
+        toReturn.type = 'chan';
+      } else if(line.substr(0,21) === 'noncetrialsperbyte = '){
+        toReturn.nonceTrials = parseInt(line.substr(21));
+      } else if(line.substr(0,25) === 'payloadlengthextrabytes = '){
+        toReturn.extraBytes = parseInt(line.substr(25));
+      } else if(line.substr(0,17) === 'privsigningkey = '){
+        toReturn.signKey = new Bitcoin.ECKey(line.substr(17));
+      } else if(line.substr(0,20) === 'privencryptionkey = '){
+        toReturn.encKey = new Bitcoin.ECKey(line.substr(20));
+      } else if(line.substr(0,21) === 'lastpubkeysendtime = '){
+        toReturn.advertised = new Date(parseInt(line.substr(21)) * 1000);
+      }
+    }
+    return toReturn;
+  }
+
   address.prototype.toObj = function(){
     myObj = {};
     myObj.version = this.version;
@@ -336,8 +393,8 @@ Bitmessage.address = (function (){
     if(this.keyRequested){
       myObj.keyRequested = this.keyRequested.toString();
     }
-    if(this.advertized){
-      myObj.advertized = this.advertized.toString();
+    if(this.advertised){
+      myObj.advertised = this.advertised.toString();
     }
     return myObj;
   };
