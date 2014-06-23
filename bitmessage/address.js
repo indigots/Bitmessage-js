@@ -6,7 +6,7 @@ Bitmessage.address = (function (){
     this.version = 4;
     this.name = '';
     this.bitfield = [0,0,0,1];
-    this.nonceTrials= Bitmessage.defaultPOWPerByte;
+    this.nonceTrials = 640; //Default to harder than the bitmessage default
     this.extraBytes = Bitmessage.defaultPayloadExtra;
     this.type = 'private';
 
@@ -219,7 +219,7 @@ Bitmessage.address = (function (){
     //alert('encrypted data: ' + Crypto.util.bytesToHex(encrypted));
     var payload = payload.concat(encrypted);
     var maxTarget = 18446744073709551615; //Math.pow(2,64)
-    var target = Math.floor(maxTarget / ((payload.length + defaultPayloadExtra + 8) * defaultPOWPerByte));
+    var target = Math.floor(maxTarget / ((payload.length + Bitmessage.defaultPayloadExtra + 8) * Bitmessage.defaultPOWPerByte));
     //alert(target);
     var initialHash = sha512Bytes(payload);
     var payloadHash = Crypto.util.bytesToHex(initialHash);
@@ -335,7 +335,7 @@ Bitmessage.address = (function (){
     var lines = keystr.split('\n');
     var toReturn;
     lines.forEach(findLabel);
-    function findLabel(line)
+    function findLabel(line){
       if(line.charAt(0) === '[' && line.charAt(line.length - 1) === ']'){
         var label = line.substr(1, line.length - 2);
         toReturn = new Bitmessage.address(label);

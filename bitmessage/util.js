@@ -1,8 +1,3 @@
-defaultPOWPerByte = 640;
-defaultPayloadExtra = 14000;
-defaultStream = 1;
-defaultVersion = 4;
-
 function bytesToWords(bytes){
   return CryptoJS.enc.Hex.parse(Crypto.util.bytesToHex(bytes));
 }
@@ -23,7 +18,7 @@ function checkPow(inBytes){
   var powBytes = doubleSha512Bytes(nonce.concat(sha512Bytes(data)));
   var powNum = byteArrayToLong(powBytes.slice(0,8));
   var maxTarget = 18446744073709551615;
-  return powNum <= maxTarget / ((data.length + defaultPayloadExtra) * (defaultPOWPerByte));
+  return powNum <= maxTarget / ((data.length + Bitmessage.defaultPayloadExtra) * (Bitmessage.defaultPOWPerByte));
 }
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
