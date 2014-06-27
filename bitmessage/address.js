@@ -440,7 +440,7 @@ Bitmessage.address = (function (){
 
   address.prototype.getRecpubkey = function(){
     if(!this.tag){
-      throw new Error('Error, missing public key.');
+      throw new Error('Error, missing tag.');
       return;
     }
     var embeddedTime = Math.round((new Date).getTime() / 1000);
