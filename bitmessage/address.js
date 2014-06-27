@@ -438,5 +438,28 @@ Bitmessage.address = (function (){
     }
   };
 
+  address.prototype.getRecpubkey = function(){
+    if(!this.tag){
+      throw new Error('Error, missing public key.');
+      return;
+    }
+    var embeddedTime = Math.round((new Date).getTime() / 1000);
+    var publishTime = embeddedTime + getRandomInt(-300,300);
+    var payload = longToByteArray(publishTime)
+      .concat(encodeVarint(this.version))
+      .concat(encodeVarint(this.stream))
+      .concat(Crypto.util.hexToBytes(this.tag));
+    var maxTarget = 18446744073709551615; //Math.pow(2,64)
+    var target = Math.floor(maxTarget / ((payload.length + this.extraBytes + 8) * this.nonceTrials));
+    var initialHash = Crypto.util.bytesToHex(sha512Bytes(payload));
+    return {
+      payload: payload,
+      target: target,
+      initialhash: initialHash,
+      stream: this.stream,
+      tag: this.tag
+    }
+  }
+
   return address;
 })();
