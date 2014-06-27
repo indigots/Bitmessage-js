@@ -225,7 +225,7 @@ Bitmessage.address = (function (){
     var payloadHash = Crypto.util.bytesToHex(initialHash);
   
     return {payload: Crypto.util.bytesToBase64(payload),
-      payloadHash: payloadHash,
+      initialhash: payloadHash,
       target: target,
       tag: this.tag};
   };

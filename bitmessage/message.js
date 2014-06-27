@@ -84,7 +84,8 @@ Bitmessage.message = (function () {
 
   message.prototype.toBytes = function(toAddress){ 
     if(!toAddress || !toAddress.signPub || !toAddress.encPub){
-      alert('Invalid _to_ address.');
+      console.log('here');
+      throw new Error('Invalid _to_ address.');
       return;
     }
     var toSend = encodeVarint(this.version);
@@ -105,7 +106,24 @@ Bitmessage.message = (function () {
     toSend = toSend.concat(encodeVarint(signature.length));
     toSend = toSend.concat(signature);
     return toSend;
-  };
+  }
+
+  message.prototype.encryptFor = function(toAddress, optionalSecureRandom){
+    var unencrypted = this.toBytes(toAddress);
+    var encryptedBytes = eciesEncrypt(unencrypted, Crypto.util.hexToBytes(toAddress.encPub), optionalSecureRandom);
+    var embeddedTime = Math.round((new Date).getTime() / 1000);
+    var publishTime = embeddedTime + getRandomInt(-300,300);
+    var payload = longToByteArray(publishTime).concat(encodeVarint(toAddress.stream)).concat(encryptedBytes);
+    var maxTarget = 18446744073709551615; //Math.pow(2,64)
+    var target = Math.floor(maxTarget / ((payload.length + toAddress.extraBytes + 8) * toAddress.nonceTrials));
+    var initialHash = Crypto.util.bytesToHex(sha512Bytes(payload));
+    return {
+      payload: payload,
+      target: target,
+      initialhash: initialHash,
+      stream: toAddress.stream
+    }
+  }
 
   return message;
 })();
