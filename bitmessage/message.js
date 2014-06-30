@@ -128,21 +128,6 @@ Bitmessage.message = (function () {
   return message;
 })();
 
-function bytesToAscii(inBytes){
-  var toReturn = '';
-  for(var i = 0; i<inBytes.length; i++){
-    toReturn += String.fromCharCode(inBytes[i]);
-  }
-  return toReturn;
-};
-function asciiToBytes(inStr){
-  var bytes = [];
-  for(var i = 0; i<inStr.length; ++i){
-    bytes.push(inStr.charCodeAt(i));
-  }
-  return bytes;
-};
-
 function bytesToUTF8(inBytes){
   var str = '';
   for (var i = 0; i < inBytes.length; i++) {

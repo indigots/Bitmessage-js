@@ -174,9 +174,7 @@ function testEncrypt(){
     + ' Cipher Text: ' + Crypto.util.bytesToHex(encryptedBytes)
     + ' HMAC: ' + hmacHex);
 }
-function updateConsole(words){
-  $('#ecConsole').val(words + '\n' + $('#ecConsole').val().substr(0,2000));
-}
+
 function testEcies(hexkey, indata){
   //enckeyhex = '995d6fc3ef13b210abafa83591b7cd7019db59448bc5b4fff6f1f6a8c1eae898';
   //rawdatahex ='000000012145fbe4f34715d56f1c00fcf11270c221a827a5a736af0e3baa952fe2324819a85ed5358e822b85a1fc6749068ef35caadc463d12fb205ec7022f9788817d4e533de7704f5ba19e66982a6311ac08f89aac2199b22ea7d3874371f7b02eb66a31a854d0154dc738fbca9af5d0f0455156a68fef5d7c63a0128c275e8372d6b7fd0280fd36b04630440220318bfb4c1ca50d6887fc8d32a869235adc45f130bedf0db4f5a9ad2d2d86248d0220791e54796b817d41ffcc16339285a6c7c996284227630ee0d4ceb3fbed65ce66';

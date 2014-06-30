@@ -70,14 +70,14 @@ function decodeVarint(byteArray){
     return [(byteArray[1] << 8) | byteArray[2],3];
   } else if(byteArray[0] == 254){ 
     var value = 0;
-    var rev = byteArray.slice(1).reverse();
+    var rev = byteArray.slice(1,5).reverse();
     for(var i = rev.length - 1; i >= 0; i--){
       value = (value * 256) + rev[i];
     }
     return [value,5];
   } else if(byteArray[0] == 255){
     var value = 0;
-    var rev = byteArray.slice(1).reverse();
+    var rev = byteArray.slice(1,9).reverse();
     for(var i = rev.length - 1; i >= 0; i--){
       value = (value * 256) + rev[i];
     }
