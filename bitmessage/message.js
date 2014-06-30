@@ -84,7 +84,6 @@ Bitmessage.message = (function () {
 
   message.prototype.toBytes = function(toAddress){ 
     if(!toAddress || !toAddress.signPub || !toAddress.encPub){
-      console.log('here');
       throw new Error('Invalid _to_ address.');
       return;
     }
