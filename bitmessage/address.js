@@ -56,9 +56,9 @@ Bitmessage.address = (function (){
       while(!trimmedEnough){
         attempts++;
         //console.log((new Date()) + ' Doing interation...' + attempts + ' generating signing key...');
-        var signPrivBytes = sha512Bytes(asciiToBytes(passPhrase).concat(encodeVarint(signNonce))).slice(0,32);
+        var signPrivBytes = sha512Bytes(UTF16toUTF8Bytes(passPhrase).concat(encodeVarint(signNonce))).slice(0,32);
         //console.log((new Date()) + ' Generating enc key.');
-        var encPrivBytes = sha512Bytes(asciiToBytes(passPhrase).concat(encodeVarint(encNonce))).slice(0,32);
+        var encPrivBytes = sha512Bytes(UTF16toUTF8Bytes(passPhrase).concat(encodeVarint(encNonce))).slice(0,32);
         //console.log((new Date()) + ' Doing point multi...');
         this.signKey = new Bitcoin.ECKey(signPrivBytes);
         this.encKey = new Bitcoin.ECKey(encPrivBytes);
