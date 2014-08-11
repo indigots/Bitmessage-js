@@ -48,16 +48,21 @@ function eciesEncrypt(dataBytes, pubKeyBytes, optionalSecureRandom){
   var encrypted = CryptoJS.AES.encrypt(bytesToWords(dataBytes), bytesToWords(key_eBytes), {iv: bytesToWords(ivBytes)});
   var encryptedBytes = Crypto.util.base64ToBytes(encrypted);
   //updateConsole(encryptedBytes);
+  //Remote follow lines for new HMAC
   var hmacObj = CryptoJS.HmacSHA256(bytesToWords(encryptedBytes), bytesToWords(key_mBytes));
   var hmacBytes = Crypto.util.hexToBytes(hmacObj.toString());
-  //updateConsole(hmacObj.toString());
+
   var finalBytes = ivBytes.concat(curveBytes)
     .concat(pointLenBytes)
     .concat(RpubBytes.slice(1,33))
     .concat(pointLenBytes)
     .concat(RpubBytes.slice(33))
-    .concat(encryptedBytes)
-    .concat(hmacBytes);
+    .concat(encryptedBytes);
+  //New HMAC for future
+  // var hmacObj = CryptoJS.HmacSHA256(bytesToWords(finalBytes), bytesToWords(key_mBytes));
+  // var hmacBytes = Crypto.util.hexToBytes(hmacObj.toString());
+  //updateConsole(hmacObj.toString());
+  finalBytes = finalBytes.concat(hmacBytes);
   //alert(Crypto.util.bytesToHex(finalBytes));
   return finalBytes;
 }
@@ -114,8 +119,14 @@ function eciesDecrypt(dataBytes, inprivkeyhex){
   //updateConsole('key m: ' + Crypto.util.bytesToHex(key_mBytes));
   var hmacObj = CryptoJS.HmacSHA256(bytesToWords(cipherBytes), bytesToWords(key_mBytes));
   var resultHmacBytes = Crypto.util.hexToBytes(hmacObj.toString());
+  //Test old HMAC style
   if(Crypto.util.bytesToHex(macBytes) != Crypto.util.bytesToHex(resultHmacBytes)){
-    return null;
+    //Test new HMAC
+    var hmacObjv2 = CryptoJS.HmacSHA256(bytesToWords(dataBytes.slice(0,-32)), bytesToWords(key_mBytes));
+    var resultHmacBytesv2 = Crypto.util.hexToBytes(hmacObjv2.toString());
+    if(Crypto.util.bytesToHex(macBytes) != Crypto.util.bytesToHex(resultHmacBytesv2)){
+      return null;
+    }
   }
   var decrypted = CryptoJS.AES.decrypt(Crypto.util.bytesToBase64(cipherBytes), 
     bytesToWords(key_eBytes), 
