@@ -14,11 +14,13 @@ function doubleSha512Bytes(bytes){
 }
 function checkPow(inBytes){
   var nonce = inBytes.slice(0,8);
-  var data = inBytes.slice(8);
+  var endOfLifeTime = byteArrayToLong(inBytes.slice(8,16));
+  var TTL = endOfLifeTime - Math.round((new Date).getTime() / 1000);
+
   var powBytes = doubleSha512Bytes(nonce.concat(sha512Bytes(data)));
   var powNum = byteArrayToLong(powBytes.slice(0,8));
   var maxTarget = 18446744073709551615;
-  return powNum <= maxTarget / ((data.length + Bitmessage.defaultPayloadExtra) * (Bitmessage.defaultPOWPerByte));
+  return powNum <= maxTarget / ((inBytes.length + Bitmessage.defaultPayloadExtra) * ((TTL*(inBytes.length + Bitmessage.defaultPOWPerByte))/65536) );
 }
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
