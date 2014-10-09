@@ -1,19 +1,21 @@
 Bitmessage.message = (function () {
 
-  var message = function (inBytes) {
+  var message = function (inBytes, additionalSignedBytes) {
     if(!inBytes){
-      this.version = 1;
+      //this.version = 1;
       this.stream = 1;
       this.encoding = 2;
       return;
     }
 
+    this.signed = false;
     var senderAddress = {};
 
-    var verArr = decodeVarint(inBytes.slice(0,10));
-    this.version = verArr[0];
-    var readPos = verArr[1];
+    //var verArr = decodeVarint(inBytes.slice(0,10));
+    //this.version = verArr[0];
+    //var readPos = verArr[1];
 
+    var readPos = 0;
     var addArr = decodeVarint(inBytes.slice(readPos, readPos+10));
     senderAddress.version = addArr[0];
     readPos += addArr[1];
@@ -65,8 +67,14 @@ Bitmessage.message = (function () {
     readPos += ackLengthArr[0];
 
     var sigLengthArr = decodeVarint(inBytes.slice(readPos, readPos+10));
+    var preSignaturePos = readPos;
     readPos += sigLengthArr[1];
     this.signature = inBytes.slice(readPos, readPos+sigLengthArr[0]);
+
+    //Check signature
+    if(verify(additionalSignedBytes.concat(inBytes.slice(0,preSignaturePos)), this.signature, senderAddress.signPub)){
+      this.signed = true;
+    }
     
     this.senderAddress = new Bitmessage.address(senderAddress);
   };
@@ -87,8 +95,8 @@ Bitmessage.message = (function () {
       throw new Error('Invalid _to_ address.');
       return;
     }
-    var toSend = encodeVarint(this.version);
-    toSend = toSend.concat(encodeVarint(this.senderAddress.version));
+    //var toSend = encodeVarint(this.version);
+    var toSend = toSend.concat(encodeVarint(this.senderAddress.version));
     toSend = toSend.concat(encodeVarint(this.senderAddress.stream));
     toSend = toSend.concat(this.senderAddress.bitfield);
     toSend = toSend.concat(this.senderAddress.signKey.getPub().slice(1));

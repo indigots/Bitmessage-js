@@ -6,7 +6,7 @@ Bitmessage.address = (function (){
     this.version = 4;
     this.name = '';
     this.bitfield = [0,0,0,1];
-    this.nonceTrials = 640; //Default to harder than the bitmessage default
+    this.nonceTrials = Bitmessage.defaultPOWPerByte;
     this.extraBytes = Bitmessage.defaultPayloadExtra;
     this.type = 'private';
 

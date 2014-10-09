@@ -14,13 +14,20 @@ function doubleSha512Bytes(bytes){
 }
 function checkPow(inBytes){
   var nonce = inBytes.slice(0,8);
+  console.log('nonce:' + nonce);
   var endOfLifeTime = byteArrayToLong(inBytes.slice(8,16));
+  console.log('endOfLifeTime:' + endOfLifeTime);
   var TTL = endOfLifeTime - Math.round((new Date).getTime() / 1000);
-
-  var powBytes = doubleSha512Bytes(nonce.concat(sha512Bytes(data)));
+  console.log('TTL:' + TTL);
+  
+  var powBytes = doubleSha512Bytes(nonce.concat(sha512Bytes(inBytes.slice(8))));
   var powNum = byteArrayToLong(powBytes.slice(0,8));
+  console.log('powNum:'+powNum);
   var maxTarget = 18446744073709551615;
-  return powNum <= maxTarget / ((inBytes.length + Bitmessage.defaultPayloadExtra) * ((TTL*(inBytes.length + Bitmessage.defaultPOWPerByte))/65536) );
+  var payloadLength = inBytes.length - 20;
+  var target = maxTarget / ((payloadLength + Bitmessage.defaultPayloadExtra) * ((TTL*(payloadLength + Bitmessage.defaultPOWPerByte))/65536) );
+  console.log('target:'+target);
+  return powNum <= maxTarget / ((payloadLength + Bitmessage.defaultPayloadExtra) * ((TTL*(payloadLength + Bitmessage.defaultPOWPerByte))/65536) );
 }
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -41,7 +48,13 @@ byteArrayToLong = function(byteArray) {
     for ( var i = byteArray.length - 1; i >= 0; i--) {
         value = (value * 256) + byteArray[7-i];
     }
-
+    return value;
+};
+byteArrayToInt = function(byteArray) {
+    var value = 0;
+    for ( var i = byteArray.length - 1; i >= 0; i--) {
+        value = (value * 256) + byteArray[3-i];
+    }
     return value;
 };
 function encodeVarint(integer){
