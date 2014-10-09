@@ -189,44 +189,36 @@ Bitmessage.address = (function (){
  
   address.prototype.createBroadcastMsg = function(){ 
     // Returns base64 payload, hex payload hash, int target, hex tag in and array
-    var embeddedTime = Math.round((new Date).getTime() / 1000);
-    var publishTime = embeddedTime + getRandomInt(-300,300);
-  
-    var payload = encodeVarint(this.stream);
-    payload = encodeVarint(this.version).concat(payload);
-    payload = longToByteArray(publishTime).concat(payload);
+    var pubkeyTTL = 28 * 24 * 60 * 60;
+    var objectBytes = longToByteArray(Math.round((new Date()).getTime()/1000) + pubkeyTTL)
+      .concat(intToByteArray(1)) //Object type
+      .concat(encodeVarint(this.version)) //Object version
+      .concat(encodeVarint(this.stream)); //Stream for this message
   
     var toEncrypt = this.bitfield;
     toEncrypt = toEncrypt.concat(this.signKey.getPub().slice(1));
     toEncrypt = toEncrypt.concat(this.encKey.getPub().slice(1));
     toEncrypt = toEncrypt.concat(encodeVarint(this.nonceTrials));
     toEncrypt = toEncrypt.concat(encodeVarint(this.extraBytes));
-    var toSign = payload.concat(toEncrypt);
-    //updateConsole('Signing: ' + Crypto.util.bytesToHex(toSign));
-    //updateConsole('Signing with: ' +  this.signKey.priv);
-    var signature = sign(toSign, this.signKey);
-    //updateConsole('Signing result: ' + Crypto.util.bytesToHex(signature));
+
+    var tagBytes = Crypto.util.hexToBytes(this.tag); 
+    payload = objectBytes.concat(tagBytes); // Add tag to payload
+
+    var signature = sign(payload.concat(toEncrypt), this.signKey);
     toEncrypt = toEncrypt.concat(encodeVarint(signature.length));
     toEncrypt = toEncrypt.concat(signature);
- 
-    var tagBytes = Crypto.util.hexToBytes(this.tag); 
-    payload = payload.concat(tagBytes); // Add tag to payload
+
     var fauxPrivKey = Crypto.util.hexToBytes(this.fauxKeyHex); // Grab bytes for priv key
-    //alert('Enc key: ' + Crypto.util.bytesToHex(fauxPrivKey));
     var fauxKey = new Bitcoin.ECKey(fauxPrivKey);
-    //alert('To Encrypt: ' + Crypto.util.bytesToHex(toEncrypt));
     var encrypted = eciesEncrypt(toEncrypt, fauxKey.getPub());
     //alert('encrypted data: ' + Crypto.util.bytesToHex(encrypted));
     var payload = payload.concat(encrypted);
-    var maxTarget = 18446744073709551615; //Math.pow(2,64)
-    var target = Math.floor(maxTarget / ((payload.length + Bitmessage.defaultPayloadExtra + 8) * Bitmessage.defaultPOWPerByte));
-    //alert(target);
-    var initialHash = sha512Bytes(payload);
-    var payloadHash = Crypto.util.bytesToHex(initialHash);
+
+    var powParams = powRequirements(payload, Bitmessage.defaultPayloadExtra, Bitmessage.defaultPOWPerByte, pubkeyTTL);
   
     return {payload: Crypto.util.bytesToBase64(payload),
-      initialhash: payloadHash,
-      target: target,
+      initialhash: Crypto.util.bytesToHex(powParams.initialHashBytes),
+      target: powParams.target,
       tag: this.tag};
   };
 

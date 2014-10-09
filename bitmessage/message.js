@@ -90,13 +90,13 @@ Bitmessage.message = (function () {
     //return asciiToBytes(stringMessage);
   };
 
-  message.prototype.toBytes = function(toAddress){ 
+  message.prototype.toBytes = function(toAddress, additionalBytesToSign){ 
     if(!toAddress || !toAddress.signPub || !toAddress.encPub){
       throw new Error('Invalid _to_ address.');
       return;
     }
     //var toSend = encodeVarint(this.version);
-    var toSend = toSend.concat(encodeVarint(this.senderAddress.version));
+    var toSend = encodeVarint(this.senderAddress.version);
     toSend = toSend.concat(encodeVarint(this.senderAddress.stream));
     toSend = toSend.concat(this.senderAddress.bitfield);
     toSend = toSend.concat(this.senderAddress.signKey.getPub().slice(1));
@@ -109,25 +109,25 @@ Bitmessage.message = (function () {
     toSend = toSend.concat(encodeVarint(messageBytes.length));
     toSend = toSend.concat(messageBytes);
     toSend = toSend.concat(encodeVarint(0)); //Skip ack for now
-    var signature = sign(toSend, this.senderAddress.signKey);
+    var signature = sign(additionalBytesToSign.concat(toSend), this.senderAddress.signKey);
     toSend = toSend.concat(encodeVarint(signature.length));
     toSend = toSend.concat(signature);
     return toSend;
   }
 
   message.prototype.encryptFor = function(toAddress, optionalSecureRandom){
-    var unencrypted = this.toBytes(toAddress);
+    var objectBytes = longToByteArray(Math.round((new Date()).getTime()/1000) + Bitmessage.defaultTTL)
+      .concat(intToByteArray(2)) //Object type
+      .concat(encodeVarint(1)) //Object version
+      .concat(encodeVarint(toAddress.stream)); //Stream for this message
+    var unencrypted = this.toBytes(toAddress, objectBytes);
     var encryptedBytes = eciesEncrypt(unencrypted, Crypto.util.hexToBytes(toAddress.encPub), optionalSecureRandom);
-    var embeddedTime = Math.round((new Date).getTime() / 1000);
-    var publishTime = embeddedTime + getRandomInt(-300,300);
-    var payload = longToByteArray(publishTime).concat(encodeVarint(toAddress.stream)).concat(encryptedBytes);
-    var maxTarget = 18446744073709551615; //Math.pow(2,64)
-    var target = Math.floor(maxTarget / ((payload.length + toAddress.extraBytes + 8) * toAddress.nonceTrials));
-    var initialHash = Crypto.util.bytesToHex(sha512Bytes(payload));
+    var payload = objectBytes.concat(encryptedBytes);
+    var powParams = powRequirements(payload, toAddress.extraBytes, toAddress.nonceTrials, Bitmessage.defaultTTL);
     return {
       payload: payload,
-      target: target,
-      initialhash: initialHash,
+      target: powParams.target,
+      initialhash: powParams.initialHashBytes,
       stream: toAddress.stream
     }
   }

@@ -29,16 +29,31 @@ function checkPow(inBytes){
   console.log('target:'+target);
   return powNum <= maxTarget / ((payloadLength + Bitmessage.defaultPayloadExtra) * ((TTL*(payloadLength + Bitmessage.defaultPOWPerByte))/65536) );
 }
+function powRequirements(inBytes, extraBytes, trials, TTL){
+  var maxTarget = 18446744073709551615; //Math.pow(2,64)
+  var target = Math.floor(maxTarget / ((inBytes.length + extraBytes) * ((TTL*(inBytes.length + trials))/65536)));
+  var initialHashBytes = sha512Bytes(inBytes);
+  return {target: target, initialHashBytes: initialHashBytes};
+}
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function longToByteArray(toConvert) {
   var byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
-
   for ( var index = 0; index < byteArray.length; index ++ ) {
     var newByte = toConvert & 0xff;
     //Big endian, work backwards
     byteArray [ 7 - index ] = newByte;
+    toConvert = (toConvert - newByte) / 256 ;
+  }
+  return byteArray;
+}
+function intToByteArray(toConvert) {
+  var byteArray = [0, 0, 0, 0];
+  for ( var index = 0; index < byteArray.length; index ++ ) {
+    var newByte = toConvert & 0xff;
+    //Big endian, work backwards
+    byteArray [ 3 - index ] = newByte;
     toConvert = (toConvert - newByte) / 256 ;
   }
   return byteArray;
