@@ -189,7 +189,7 @@ Bitmessage.address = (function (){
  
   address.prototype.createBroadcastMsg = function(){ 
     // Returns base64 payload, hex payload hash, int target, hex tag in and array
-    var pubkeyTTL = 28 * 24 * 60 * 60;
+    var pubkeyTTL = 28 * 24 * 60 * 60; //28 days for pubkeys
     var objectBytes = longToByteArray(Math.round((new Date()).getTime()/1000) + pubkeyTTL)
       .concat(intToByteArray(1)) //Object type
       .concat(encodeVarint(this.version)) //Object version
@@ -224,11 +224,16 @@ Bitmessage.address = (function (){
 
   address.prototype.fromBroadcast = function(inBytes){
     //Parse the pub keys and other info from a pub key broadcast, after removing nonce
-    //updateConsole(Crypto.util.bytesToHex(inBytes));
-    var timeBytes = inBytes.slice(0,8);
+    var embeddedTime = byteArrayToLong(inBytes.slice(0,8));
+    var objType = byteArrayToInt(inBytes.slice(8,12));
+    var readPos = 12;
+    var versionArr = decodeVarint(inBytes.slice(readPos,readPos+9));
+    var tempVersion= versionArr[0];
+    readPos += versionArr[1]
+    var streamArr = decodeVarint(inBytes.slice(readPos,readPos+9));
+    var stream = streamArr[0];
+    readPos += streamArr[1];
 
-    var verArr = decodeVarint(inBytes.slice(8,18));
-    var tempVersion = verArr[0];
     if(tempVersion != 4){
       return;
     }
