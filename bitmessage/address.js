@@ -231,25 +231,20 @@ Bitmessage.address = (function (){
     var tempVersion= versionArr[0];
     readPos += versionArr[1]
     var streamArr = decodeVarint(inBytes.slice(readPos,readPos+9));
-    var stream = streamArr[0];
+    var tempStream = streamArr[0];
     readPos += streamArr[1];
 
     if(tempVersion != 4){
       return;
     }
-    var readPos = verArr[1] + 8;
-
-    var streamArr = decodeVarint(inBytes.slice(readPos, readPos+10));
-    var tempStream = streamArr[0];
-    readPos += streamArr[1];
-
-    var endOfFirstSignedPart = readPos;
 
     var tagBytes = inBytes.slice(readPos, readPos+32);
+    readPos += 32;
+    var endOfFirstSignedPart = readPos;
+
     if(Crypto.util.bytesToHex(tagBytes) != this.tag){
       return;
     }
-    readPos += 32;
 
     var encryptedBytes = inBytes.slice(readPos); 
     var decrypted = eciesDecrypt(encryptedBytes, this.fauxKeyHex);
