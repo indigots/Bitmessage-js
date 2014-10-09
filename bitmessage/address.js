@@ -440,19 +440,17 @@ Bitmessage.address = (function (){
       throw new Error('Error, missing tag.');
       return;
     }
-    var embeddedTime = Math.round((new Date).getTime() / 1000);
-    var publishTime = embeddedTime + getRandomInt(-300,300);
-    var payload = longToByteArray(publishTime)
-      .concat(encodeVarint(this.version))
-      .concat(encodeVarint(this.stream))
-      .concat(Crypto.util.hexToBytes(this.tag));
-    var maxTarget = 18446744073709551615; //Math.pow(2,64)
-    var target = Math.floor(maxTarget / ((payload.length + this.extraBytes + 8) * this.nonceTrials));
-    var initialHash = Crypto.util.bytesToHex(sha512Bytes(payload));
+    var objectBytes = longToByteArray(Math.round((new Date()).getTime()/1000) + Bitmessage.defaultTTL)
+      .concat(intToByteArray(0)) //Object type
+      .concat(encodeVarint(this.version)) //Object version
+      .concat(encodeVarint(this.stream)) //Stream for this message
+      .concat(Crypto.util.hexToBytes(this.tag)); //Tag we want
+
+    var powParams = powRequirements(objectBytes, Bitmessage.defaultPayloadExtra, Bitmessage.defaultPOWPerByte, Bitmessage.defaultTTL);
     return {
       payload: payload,
-      target: target,
-      initialhash: initialHash,
+      target: powParams.target,
+      initialhash: Crypto.util.bytesToHex(powParams.initialHashBytes),
       stream: this.stream,
       tag: this.tag
     }
