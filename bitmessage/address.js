@@ -448,7 +448,7 @@ Bitmessage.address = (function (){
 
     var powParams = powRequirements(objectBytes, Bitmessage.defaultPayloadExtra, Bitmessage.defaultPOWPerByte, Bitmessage.defaultTTL);
     return {
-      payload: payload,
+      payload: objectBytes,
       target: powParams.target,
       initialhash: Crypto.util.bytesToHex(powParams.initialHashBytes),
       stream: this.stream,
