@@ -14,19 +14,19 @@ function doubleSha512Bytes(bytes){
 }
 function checkPow(inBytes){
   var nonce = inBytes.slice(0,8);
-  console.log('nonce:' + nonce);
+  //console.log('nonce:' + nonce);
   var endOfLifeTime = byteArrayToLong(inBytes.slice(8,16));
-  console.log('endOfLifeTime:' + endOfLifeTime);
+  //console.log('endOfLifeTime:' + endOfLifeTime);
   var TTL = endOfLifeTime - Math.round((new Date).getTime() / 1000);
-  console.log('TTL:' + TTL);
+  //console.log('TTL:' + TTL);
   
   var powBytes = doubleSha512Bytes(nonce.concat(sha512Bytes(inBytes.slice(8))));
   var powNum = byteArrayToLong(powBytes.slice(0,8));
-  console.log('powNum:'+powNum);
+  //console.log('powNum:'+powNum);
   var maxTarget = 18446744073709551615;
   var payloadLength = inBytes.length - 20;
   var target = maxTarget / ((payloadLength + Bitmessage.defaultPayloadExtra) * ((TTL*(payloadLength + Bitmessage.defaultPOWPerByte))/65536) );
-  console.log('target:'+target);
+  //console.log('target:'+target);
   return powNum <= maxTarget / ((payloadLength + Bitmessage.defaultPayloadExtra) * ((TTL*(payloadLength + Bitmessage.defaultPOWPerByte))/65536) );
 }
 function powRequirements(inBytes, extraBytes, trials, TTL){
