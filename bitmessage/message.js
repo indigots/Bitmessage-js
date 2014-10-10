@@ -131,9 +131,36 @@ Bitmessage.message = (function () {
       stream: toAddress.stream
     }
   }
-
   return message;
 })();
+
+Bitmessage.message.decrypt = function(bytes, inkeyhex){
+  //Takes message object bytes without nonce and priv key in hex
+  var expireTime = byteArrayToLong(bytes.slice(0,8));
+  var objType = byteArrayToInt(bytes.slice(8,12));
+  var readPos = 12;
+  var versionArr = decodeVarint(bytes.slice(readPos,readPos+9));
+  var version = versionArr[0];
+  readPos += versionArr[1]
+  var streamArr = decodeVarint(bytes.slice(readPos,readPos+9));
+  var stream = streamArr[0];
+  readPos += streamArr[1];
+  var result = eciesDecrypt(bytes.slice(readPos), inkeyhex);
+  if(result){
+    var message = new Bitmessage.message(result, bytes.slice(0,readPos));
+    if(message.signed){
+      message.stream = stream;
+      message.version = version;
+      message.expireTime = expireTime;
+      message.objectType = objType;
+      return message;
+    } else {
+      throw new Error('ECDSA signature in message failed.');
+    }
+  }
+  return null;
+}
+
 
 function bytesToUTF8(inBytes){
   var str = '';
