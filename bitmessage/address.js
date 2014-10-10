@@ -132,6 +132,9 @@ Bitmessage.address = (function (){
       if(input.signPub){
         this.signPub = input.signPub;
       }
+      if(input.bitfield){
+        this.bitfield = input.bitfield;
+      }
       this.nonceTrials = input.nonceTrials;
       this.extraBytes = input.extraBytes;
       if(this.encPub && this.signPub){
@@ -365,6 +368,7 @@ Bitmessage.address = (function (){
     myObj.stream = this.stream;
     myObj.label = this.label;
     myObj.type = this.type;
+    myObj.bitfield = this.bitfield;
     if(this.encKey){
       myObj.encPriv = this.encKey.priv.toString();
     }
@@ -449,6 +453,10 @@ Bitmessage.address = (function (){
       stream: this.stream,
       tag: this.tag
     }
+  }
+
+  address.prototype.isMobile = function(){
+    return isBitSet(this.bitfield, 30);
   }
 
   return address;

@@ -124,3 +124,7 @@ function verify(input, sig, pubhex){
   var hash = wordsToBytes(CryptoJS.SHA1(bytesToWords(input)));
   return Bitcoin.ECDSA.verify(hash, sig, Crypto.util.hexToBytes(pubhex));
 }
+function isBitSet(byteArray, bitNum){
+    var i = byteArrayToInt(byteArray);
+    return (i & Math.pow(2,31-bitNum)) != 0;
+}

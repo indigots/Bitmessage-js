@@ -120,6 +120,9 @@ Bitmessage.message = (function () {
       .concat(intToByteArray(2)) //Object type
       .concat(encodeVarint(1)) //Object version
       .concat(encodeVarint(toAddress.stream)); //Stream for this message
+    if(toAddress.isMobile()){
+      objectBytes = objectBytes.concat(toAddress.getRipeBytes());
+    }
     var unencrypted = this.toBytes(toAddress, objectBytes);
     var encryptedBytes = eciesEncrypt(unencrypted, Crypto.util.hexToBytes(toAddress.encPub), optionalSecureRandom);
     var payload = objectBytes.concat(encryptedBytes);
@@ -134,7 +137,7 @@ Bitmessage.message = (function () {
   return message;
 })();
 
-Bitmessage.message.decrypt = function(bytes, inkeyhex){
+Bitmessage.message.decrypt = function(bytes, inkeyhex, mobileRipe){
   //Takes message object bytes without nonce and priv key in hex
   var expireTime = byteArrayToLong(bytes.slice(0,8));
   var objType = byteArrayToInt(bytes.slice(8,12));
@@ -145,6 +148,13 @@ Bitmessage.message.decrypt = function(bytes, inkeyhex){
   var streamArr = decodeVarint(bytes.slice(readPos,readPos+9));
   var stream = streamArr[0];
   readPos += streamArr[1];
+  if(mobileRipe){ //This private address is mobile and the ripe should be inserted here
+    if(Crypto.util.bytesToHex(bytes.slice(readPos, readPos+20)) === Crypto.util.bytesToHex(mobileRipe)){
+      readPos += 20;
+    } else {
+      return null;
+    }
+  }
   var result = eciesDecrypt(bytes.slice(readPos), inkeyhex);
   if(result){
     var message = new Bitmessage.message(result, bytes.slice(0,readPos));
